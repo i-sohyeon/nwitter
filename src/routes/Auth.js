@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import {authService} from "fbase";
+
+
 
 const Auth = () => {
     const [email, setEmail] = useState("");
@@ -18,30 +21,39 @@ const Auth = () => {
         };
         //내가 input을 변경할 떄 마다 onChange function 호출
     };
-    const onSubmit = (event) => {
+    
+    const onSubmit = async(event) => {
         event.preventDefault();
-        if(newAccount){
-            //create account
-        }else{
-            //Log in
-        }
-    }
+        try{
+            let data;
+            if(newAccount){
+               data = await authService.createUserWithEmailAndPassword(
+                    email, password
+                );
+            }else{
+               data = await authService.signInWithEmailAndPassword(email, password);
+            }
+            console.log(data);
+        } catch (error){
+          console.log(error);
+        } 
+    };
 
     return (
         <div>
             <form onSubmit={onSubmit}>
                 <input 
-                    name='email'
+                    name="email"
                     type="email"
-                    placeholder='Email'
+                    placeholder="Email"
                     required
                     value={email}
                     onChange={onChange}
                 />
                 <input
-                    name='password'
+                    name="password"
                     type="password"
-                    placeholder='Password'
+                    placeholder="Password"
                     required
                     value={password}
                     onChange={onChange}
