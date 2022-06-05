@@ -1,12 +1,44 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AppRouter from 'components/Router';
 import {authService} from 'fbase';
+
+
 function App () {
-  const [isLoggedIn, setIsLoggedIn] = useState(authService.currentUser);
+  const [init, setInit] = useState(false); //초기화 되지 않은 상태
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // import {getAuth, onAuthStateChanged} from 'firebase/auth';
+  // useEffect(()=>{
+  //   const auth = getAuth();
+  //   onAuthStateChanged(auth, (user) => {
+  //     if(user){
+  //       setIsLoggedIn(true);
+  //     }else{
+  //       setIsLoggedIn(false);
+  //     }
+  //     setInit(true);
+  //   })
+  // }, []);
+
+ useEffect(()=>{ //컴포넌트가 mount(처음 실행될때)될 때 실행되는 hook()
+   authService.onAuthStateChanged((user)=>{
+     if(user) {
+       setIsLoggedIn(true);
+     }else{
+       setIsLoggedIn(false);
+     }
+     setInit(true);
+   });
+ },[]);
+
+
+
   return (
     <>
-      <AppRouter isLoggedIn={isLoggedIn}/>
-      <footer>&copy; nwitter {new Date().getFullYear()} nwitter</footer>
+      {init ? <AppRouter isLoggedIn={isLoggedIn}/> : "initializing..."}
+    {/* 초기화가 되었다면 router를 보여주고 아니면 initializing보여줌 */}
+
+      <footer>&copy; nwitter {new Date().getFullYear()}</footer>
     </>
   );
 };

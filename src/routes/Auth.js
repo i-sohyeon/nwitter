@@ -1,24 +1,26 @@
 import React, { useState } from 'react';
-import {authService} from "fbase";
+import {authService, firebaseInstance} from "fbase";
+import {createUserWithEmailAndPassword, GithubAuthProvider, GoogleAuthProvider, signInWithEmailAndPassword,signInWithPopup} from "firebase/auth";
 
 
 
 const Auth = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [newAccount, setNewAccount] = useState(true);
+    const [newAccount, setNewAccount] = useState("");
+    const [error, setError] = useState("");
 
     const onChange = (event) => { //값이 바뀔때마다 onChange함수 실행(event : 무슨일이 일어났는가?)
     
         // console.log(event.target.name);
-        const {target: {name, value}} = event;
-        console.log(value);
+        const {target: {name, value}, } = event;
+        // console.log(value);
         // target : 변경이 일어난 부분
         if(name === "email"){
-            setEmail(value)
+            setEmail(value);
         }else if(name === "password"){
-            setPassword(value)
-        };
+            setPassword(value);
+        }
         //내가 input을 변경할 떄 마다 onChange function 호출
     };
     
@@ -31,12 +33,37 @@ const Auth = () => {
                     email, password
                 );
             }else{
-               data = await authService.signInWithEmailAndPassword(email, password);
+            // eslint-disable-next-line
+               data = await authService.signInWithEmailAndPassword(
+                   email, password
+                );
             }
             console.log(data);
         } catch (error){
           console.log(error);
+          setError(error.message);
         } 
+    };
+    const toggleAccount = () => setNewAccount((prev) => !prev);
+    //newAccount의 이전값을 가져와서 그 값에 반대되는 것을 리턴
+
+    const onSocialClick = async (event) =>{ //es6
+        // console.log(event.target.name);
+        
+        const {
+            target : {name},
+        } =event;
+        let provider;
+        if(name === "google"){
+            // provider = new firebaseInstance.auth.GoogleAuthProvider();
+            provider=new GoogleAuthProvider();
+        }else if( name === "githeb") {
+            // provider = new firebaseInstance.auth.GithubAuthProvider();
+            provider=new GithubAuthProvider();
+        }
+        // const data = await authService.signInWithPopup(provider);
+        await signInWithPopup(authService, provider);
+
     };
 
     return (
@@ -58,11 +85,20 @@ const Auth = () => {
                     value={password}
                     onChange={onChange}
                 />
-                <input type="submit" value={newAccount ? "Create Account" : "Log In"} />
+                {/* <input type="submit" value={newAccount ? "Create Account" : "Log In"} /> */}
+                <input 
+                    type="submit"
+                    value={newAccount ? "Create Account" : "Sign In"}
+                />
+
+                {error}
             </form>
+            <span onClick={toggleAccount}>
+                {newAccount ? "Sign In" : "Create Account"}
+            </span>
             <div>
-                <button>Continue with Google</button>
-                <button>Continue with Github</button>
+                <button onClick={onSocialClick} name="google">Continue with Google</button>
+                <button onClick={onSocialClick}>Continue with Github</button>
             </div>
         </div>
     );
