@@ -1,55 +1,42 @@
-import React, { useState } from 'react';
 import { dbService } from 'fbase';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, getDocs } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
 
 const Home = () => {
-    const [nweet, setNweet] = useState(""); //빈문자열
-    const onSubmit = async(event) => {
-
-        // TEST02 CODE
-        event.preventDefault();
-        console.log(`submit nweet:${nweet}`);
-        await addDoc(collection(dbService,"nweets"),{
-            nweet,
-            createdAt:serverTimestamp(),
+    const[nweet, setNweet] = useState("");
+    const[nweets, setNweets] = useState([]);
+    const getNweets = async() => {
+        const dbNweets = await getDocs(collection(dbService, "nweets"));
+        dbNweets.forEach((doc)=>{
+            const nweetObject = {
+                ...doc.data(),
+                id: doc.id,
+            };
+            console.log(doc.id, "=>", doc.data());
+            setNweets((prev) => [nweetObject, ...prev]);
         });
-        setNweet("");
+    }
 
-        // ===================================================
+    useEffect(() => {
+        getNweets();
+    }, []);
 
-        //TEST01 CODE
-        // event.preventDefault();
-        // try{
-        //     const docRef = await addDoc(collection(dbService,"nweeets"),{
-        //         nweet,
-        //         createdAt : Date.now(),
-        //     });
-        //     console.log("Document written with ID:", docRef.id);
-        // }catch (error) {
-        //     console.error("Error adding document:", error);
-        // }
-
-        // setNweet("");
-
-        // ===================================================
-
-        // 노마드 코드
-        // await dbService.collection("neweets").add({
-        //     //원하는 데이터를 무엇이든 넣을 수 있음
-        //     nweet,
-        //     createdAt : Date.now(),
-        // });
-        // //submit하고나면, setNweet()을 해서 빈문자열 적용하기
-        // setNweet("");
+    const onSubmit = async (e) => {
+        e.preventDefault();
+        await addDoc(collection(dbService, "nweets"), {
+            nweet,
+            createAt: Date.now(),
+        });
+        setNweet();
     };
 
-    const onChange = (event) => {
-        const {
-            target: { value },
-        } = event; //event로 부터
-        //즉, event 안에 있는 target안에 있는 value를 달라고 하는것
-        setNweet(value);
-    };
+    const onChange = (e) => {
+       const {
+        target : {value},
+       } = e;
+       setNweet(value);
+    }
+
     return (
         <div>
             <form onSubmit={onSubmit}>
@@ -62,6 +49,13 @@ const Home = () => {
                 />
                 <input type="submit" value="Nweet"/>
             </form>
+            <div>
+                {nweets.map(nweet => <div>
+                    <div key={nweet.id}>
+                        <h4>{nweet.nweet}</h4>
+                    </div>
+                </div>)}
+            </div>
         </div>
     );
 };
